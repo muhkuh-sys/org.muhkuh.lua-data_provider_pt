@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jonchki-artifact version="1.0">
+	<info group="org.muhkuh.lua"
+	      module="data_provider_pt"
+	      artifact="data_provider_pt"
+	      version="${PROJECT_VERSION}"
+	      vcs-id="${PROJECT_VERSION_VCS}"
+	      extension="zip">
+		<license name="GPL-2.0"/>
+		<author name="Muhkuh team" url="https://bitbucket.hilscher.com/projects/MKA" />
+		<description>
+			The data provider is a common API to retrieve the firmware, SPI macro, SecMem personalization information and SDRAM parameters.
+		</description>
+	</info>
+	<dependencies>
+		<dependency group="com.github.lunarmodules" module="Penlight"              artifact="Penlight"              version="1"/>
+		<dependency group="com.github.moteus"       module="lua-log"               artifact="lua-log"               version="0"/>
+		<dependency group="org.muhkuh.lua"          module="mhash"                 artifact="lua5.4-mhash"          version="0"/>
+		<dependency group="com.github.lua-curl"     module="lua-curlv3"            artifact="lua5.4-lua-curlv3"     version="0"/>
+		<dependency group="com.github.tieske"       module="lua-resty-ljsonschema" artifact="lua-resty-ljsonschema" version="1"/>
+	</dependencies>
+</jonchki-artifact>

@@ -43,7 +43,7 @@ local atArtifact =
 {
   {
     strGroup = 'org.muhkuh.lua',
-    strModule = 'org.muhkuh.lua-data_provider_pt',
+    strModule = 'data_provider_pt',
     strProject_version = table.concat(atEnv.DEFAULT.atVars.PROJECT_VERSION,'.'),
     strPathInstaller = 'installer/org.muhkuh.lua-data_provider_pt',
     tArchiveStructure = {
