@@ -51,7 +51,7 @@ function DataProviderPt:_init(tLogWriter, strLogLevel)
   setmetatable(tConfigurationSchema.patternProperties['^.*$'].required, cjson.array_mt)
 
 
-  local jsonschema = require 'ljsonschema'
+  local jsonschema = require 'resty.ljsonschema'
   local fSchemaIsValid, strSchemaError = jsonschema.jsonschema_validator(tConfigurationSchema)
   if fSchemaIsValid~=true then
     error(string.format('Failed to parse the configuration schema: %s', strSchemaError))
