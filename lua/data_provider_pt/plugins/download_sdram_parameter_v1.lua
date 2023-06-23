@@ -3,7 +3,7 @@ local DataProviderDownloadBase = require 'data_provider_pt.download_base'
 local DataProviderDownloadSdramV1 = class(DataProviderDownloadBase)
 
 function DataProviderDownloadSdramV1:_init(tLog)
-  self:super(tLog, 'download_sdram_v1')
+  self:super(tLog, 'download_sdram_parameter_v1')
 end
 
 

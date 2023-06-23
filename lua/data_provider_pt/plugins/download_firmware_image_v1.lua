@@ -3,7 +3,7 @@ local DataProviderDownloadBase = require 'data_provider_pt.download_base'
 local DataProviderDownloadFirmwareV1 = class(DataProviderDownloadBase)
 
 function DataProviderDownloadFirmwareV1:_init(tLog)
-  self:super(tLog, 'download_firmware_v1')
+  self:super(tLog, 'download_firmware_image_v1')
 end
 
 

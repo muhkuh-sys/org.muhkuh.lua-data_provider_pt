@@ -3,7 +3,7 @@ local DataProviderDownloadBase = require 'data_provider_pt.download_base'
 local DataProviderDownloadSecmemV1 = class(DataProviderDownloadBase)
 
 function DataProviderDownloadSecmemV1:_init(tLog)
-  self:super(tLog, 'download_secmem_v1')
+  self:super(tLog, 'download_secmem_definition_v1')
 end
 
 

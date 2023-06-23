@@ -3,7 +3,7 @@ local PluginBase = require 'data_provider_pt.plugin_base'
 local DataProviderLocalFirmwareV1 = class(PluginBase)
 
 function DataProviderLocalFirmwareV1:_init(tLog)
-  self:super(tLog, 'local_firmware_v1')
+  self:super(tLog, 'local_firmware_image_v1')
 end
 
 

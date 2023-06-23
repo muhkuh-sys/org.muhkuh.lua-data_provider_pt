@@ -3,7 +3,7 @@ local PluginBase = require 'data_provider_pt.plugin_base'
 local DataProviderLocalSecmemV1 = class(PluginBase)
 
 function DataProviderLocalSecmemV1:_init(tLog)
-  self:super(tLog, 'local_secmem_v1')
+  self:super(tLog, 'local_secmem_definition_v1')
 end
 
 
