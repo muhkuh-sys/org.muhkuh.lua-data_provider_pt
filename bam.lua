@@ -52,11 +52,18 @@ local atArtifact =
       },
       ['lua/data_provider_pt'] = {
         'lua/data_provider_pt/download_base.lua',
-        'lua/data_provider_pt/plugin_base.lua'
+        'lua/data_provider_pt/plugin_base.lua',
+        'lua/data_provider_pt/sdram_parameter_file.lua'
       },
       ['lua/data_provider_pt/plugins'] = {
-        'lua/data_provider_pt/plugins/download_firmware_v1.lua',
-        'lua/data_provider_pt/plugins/local_firmware_v1.lua'
+        'lua/data_provider_pt/plugins/download_firmware_image_v1.lua',
+        'lua/data_provider_pt/plugins/download_sdram_parameter_v1.lua',
+        'lua/data_provider_pt/plugins/download_secmem_definition_v1.lua',
+        'lua/data_provider_pt/plugins/download_spi_macro_v1.lua',
+        'lua/data_provider_pt/plugins/local_firmware_image_v1.lua',
+        'lua/data_provider_pt/plugins/local_sdram_parameter_v1.lua',
+        'lua/data_provider_pt/plugins/local_secmem_definition_v1.lua',
+        'lua/data_provider_pt/plugins/local_spi_macro_v1.lua'
       },
       'installer/org.muhkuh.lua-data_provider_pt/install.lua'
     }
