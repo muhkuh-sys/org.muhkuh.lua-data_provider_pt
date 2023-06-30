@@ -219,7 +219,7 @@ function DataProviderPt:setConfig(atCfg)
     local strID = tItemAttr.id
     if atPlugins[strID]==nil then
       local tablex = require 'pl.tablex'
-      local astrPlugins = tablex.keys()
+      local astrPlugins = tablex.keys(atPlugins)
       table.insert(astrErrors, string.format(
         'Data item "%s" requests an unknown plugin "%s". Available plugins are: %s',
         strItemName,
