@@ -80,6 +80,8 @@ function DataProviderLocalSdramParameterV1:getData(_, tCfg)
 
         else
           tData = {
+            netx = tCfg.NETX,
+            interface = tCfg.INTERFACE,
             control_register = ulControlRegister,
             timing_register = ulTimingRegister,
             mode_register = ulModeRegister,

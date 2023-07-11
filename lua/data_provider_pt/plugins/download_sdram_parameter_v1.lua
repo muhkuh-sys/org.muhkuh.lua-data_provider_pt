@@ -29,6 +29,8 @@ function DataProviderDownloadSdramV1:getData(strItemName, tCfg)
     else
       local tParameter = sdram.tParameter
       tData = {
+        netx = tParameter.netX,
+        interface = tParameter.interface,
         control_register = tParameter.ControlRegister,
         timing_register = tParameter.TimingRegister,
         mode_register = tParameter.ModeRegister,
