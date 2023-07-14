@@ -7,7 +7,7 @@
 	      vcs-id="${PROJECT_VERSION_VCS}"
 	      extension="zip">
 		<license name="GPL-2.0"/>
-		<author name="Muhkuh team" url="https://bitbucket.hilscher.com/projects/MKA" />
+		<author name="Muhkuh team" url="https://github.com/muhkuh-sys" />
 		<description>
 			The data provider is a common API to retrieve the firmware, SPI macro, SecMem personalization information and SDRAM parameters.
 		</description>
