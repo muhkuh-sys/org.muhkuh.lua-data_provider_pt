@@ -7,6 +7,11 @@ function DataProviderDownloadFirmwareV1:_init(tLog)
 end
 
 
+function DataProviderDownloadFirmwareV1:isCacheable()
+  return true
+end
+
+
 function DataProviderDownloadFirmwareV1:getData(strItemName, tCfg)
   local tLog = self.tLog
   local tData

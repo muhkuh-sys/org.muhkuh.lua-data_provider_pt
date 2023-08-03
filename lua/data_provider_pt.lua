@@ -140,9 +140,8 @@ function DataProviderPt:__getPlugins()
 end
 
 
-function DataProviderPt:__getDataItem(strItemName)
-  local tLog = self.tLog
-  local tData
+function DataProviderPt:__getItemAttr(strItemName)
+  local tItemAttr
   local strMessage
 
   -- Does a configuration exist?
@@ -152,7 +151,7 @@ function DataProviderPt:__getDataItem(strItemName)
 
   else
     -- Search the item name in the configuration.
-    local tItemAttr = atCfg[strItemName]
+    tItemAttr = atCfg[strItemName]
     if tItemAttr==nil then
       -- The item name could not be found. Show all configured items in the error message, maybe there is just a
       -- small typo in the request.
@@ -163,35 +162,10 @@ function DataProviderPt:__getDataItem(strItemName)
         strItemName,
         table.concat(astrItemNames, ', ')
       )
-    else
-      -- Lookup the plugin.
-      local strID = tItemAttr.id
-      local atPlugins = self:__getPlugins()
-      local tPluginAttr = atPlugins[strID]
-      if tPluginAttr==nil then
-        strMessage = string.format(
-          'Item "%s" requests an unknown provider: %s',
-          strItemName,
-          strID
-        )
-      else
-        tLog.debug('Using provider "%s".', strID)
-
-        -- Request the data from the plugin.
-        local strDataError
-        tData, strDataError = tPluginAttr.plugin:getData(strItemName, tItemAttr.cfg)
-        if tData==nil then
-          strMessage = string.format(
-            'Failed to get data for item "%s": %s',
-            strItemName,
-            tostring(strDataError)
-          )
-        end
-      end
     end
   end
 
-  return tData, strMessage
+  return tItemAttr, strMessage
 end
 
 
@@ -219,7 +193,9 @@ function DataProviderPt:setConfig(atCfg)
   local astrErrors = {}
   for strItemName, tItemAttr in pairs(atCfg) do
     local strID = tItemAttr.id
-    if atPlugins[strID]==nil then
+    local tPluginAttr = atPlugins[strID]
+    tItemAttr.plugin_attr = tPluginAttr
+    if tPluginAttr==nil then
       local tablex = require 'pl.tablex'
       local astrPlugins = tablex.keys(atPlugins)
       table.insert(astrErrors, string.format(
@@ -244,33 +220,123 @@ function DataProviderPt:setConfig(atCfg)
 end
 
 
-function DataProviderPt:getData(strItemName)
-  local tLog = self.tLog
-  local atCache = self.atCache
-  local tData
-
-  -- Does a cache exist?
-  if atCache==nil then
-    local strMsg = 'No cache found, call setConfig first.'
-    tLog.error(strMsg)
-    error(strMsg)
+function DataProviderPt:deepUpdate(atDestination, atSource, fnOnUpdate, strPath)
+  if strPath==nil then
+    strPath = ''
+  else
+    strPath = strPath .. '.'
   end
 
-  -- Is the data already in the cache.
-  tData = atCache[strItemName]
-  if tData==nil then
-    -- No, the data is not part of the cache yet. Request it now.
-    tLog.debug('No data found for "%s" in the cache, requesting it now.', strItemName)
-    local strGetError
-    tData, strGetError = self:__getDataItem(strItemName)
-    if tData==nil then
-      local strMsg = string.format('Failed to get the data entry for "%s": %s', strItemName, strGetError)
-      tLog.error(strMsg)
-      error(strMsg)
-    else
+  -- Loop over all items in the source table.
+  for tKey, tSrcValue in pairs(atSource) do
+    local strSrcType = type(tSrcValue)
 
-      -- Write the data to the cache to speed up further requests of this item.
-      atCache[strItemName] = tData
+    -- Does the entry exist in the destination table?
+    local tDstValue = atDestination[tKey]
+    local strDstType = type(tDstValue)
+
+    if strSrcType=='table' then
+      -- Create not existing tables in the destination.
+      -- Overwrite non-table values.
+      if strDstType~='table' then
+        tDstValue = {}
+        atDestination[tKey] = tDstValue
+      end
+
+      self:deepUpdate(
+        tDstValue,
+        tSrcValue,
+        fnOnUpdate,
+        strPath .. tostring(tKey)
+      )
+
+    else
+      if strSrcType~=strDstType or tSrcValue~=tDstValue then
+        -- Update the item.
+        atDestination[tKey] = tSrcValue
+        -- Does a callback exist?
+        if fnOnUpdate~=nil then
+          fnOnUpdate(strPath .. tostring(tKey), tDstValue, tSrcValue)
+        end
+      end
+    end
+  end
+end
+
+
+function DataProviderPt:getData(strItemName, tLocalConfig)
+  local tLog = self.tLog
+  local atCache
+  local tData
+
+
+  local tItemAttr, strError = self:__getItemAttr(strItemName)
+  if tItemAttr==nil then
+    local strMsg = string.format(
+      'Failed to get the attributes for item %s: %s',
+      strItemName,
+      strError
+    )
+    tLog.error(strMsg)
+    error(strMsg)
+
+  else
+    local tPluginAttr = tItemAttr.plugin_attr
+    tLog.debug('Using plugin "%s".', tPluginAttr.id)
+
+    -- Merge the configuration.
+    local tMergedConfig = {}
+    self:deepUpdate(
+      tMergedConfig,
+      tItemAttr.cfg
+    )
+    self:deepUpdate(
+      tMergedConfig,
+      tLocalConfig,
+      function(strPath, tOldValue, tNewValue)
+        if tOldValue==nil then
+          tLog.debug('Creating new entry %s = %s', strPath, tostring(tNewValue))
+        else
+          tLog.debug('Updating entry %s from %s to %s', strPath, tostring(tOldValue), tostring(tNewValue))
+        end
+      end
+    )
+
+    local tPlugin = tPluginAttr.plugin
+    local fItemIsCacheable = tPlugin:isCacheable(strItemName, tMergedConfig)
+    if fItemIsCacheable then
+      atCache = self.atCache
+
+      -- Is the data already in the cache?
+      tData = atCache[strItemName]
+      if tData==nil then
+        tLog.debug('No data found for "%s" in the cache.', strItemName)
+      else
+        tLog.debug('Found item "%s" in the cache.', strItemName)
+      end
+    else
+      tLog.debug('The item "%s" is not cacheable.', strItemName)
+    end
+
+    if tData==nil then
+      tData, strError = tPlugin:getData(strItemName, tMergedConfig)
+      if tData==nil then
+        local strMsg = string.format(
+          'Failed to get data for item "%s": %s',
+          strItemName,
+          tostring(strError)
+        )
+        tLog.error(strMsg)
+        error(strMsg)
+      else
+
+        if fItemIsCacheable then
+          -- Write the data to the cache to speed up further requests of this item.
+
+          tLog.debug('Add the data for item "%s" to the cache.', strItemName)
+          atCache[strItemName] = tData
+        end
+      end
     end
   end
 

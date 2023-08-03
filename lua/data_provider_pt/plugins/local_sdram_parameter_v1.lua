@@ -50,6 +50,11 @@ function DataProviderLocalSdramParameterV1.__getNumber(tData)
 end
 
 
+function DataProviderLocalSdramParameterV1:isCacheable()
+  return true
+end
+
+
 function DataProviderLocalSdramParameterV1:getData(_, tCfg)
   local tData
   local strMessage

@@ -7,6 +7,11 @@ function DataProviderDownloadSecmemV1:_init(tLog)
 end
 
 
+function DataProviderDownloadSecmemV1:isCacheable()
+  return true
+end
+
+
 function DataProviderDownloadSecmemV1:getData(strItemName, tCfg)
   local tLog = self.tLog
   local tData

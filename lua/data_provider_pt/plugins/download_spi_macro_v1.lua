@@ -7,6 +7,11 @@ function DataProviderDownloadSpiMacroV1:_init(tLog)
 end
 
 
+function DataProviderDownloadSpiMacroV1:isCacheable()
+  return true
+end
+
+
 function DataProviderDownloadSpiMacroV1:getData(strItemName, tCfg)
   local tLog = self.tLog
   local tData

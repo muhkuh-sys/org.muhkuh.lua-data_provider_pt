@@ -7,6 +7,11 @@ function DataProviderLocalFirmwareV1:_init(tLog)
 end
 
 
+function DataProviderLocalFirmwareV1:isCacheable()
+  return true
+end
+
+
 function DataProviderLocalFirmwareV1:getData(_, tCfg)
   local tData
   local strMessage

@@ -7,6 +7,11 @@ function DataProviderLocalSpiMacroV1:_init(tLog)
 end
 
 
+function DataProviderLocalSpiMacroV1:isCacheable()
+  return true
+end
+
+
 function DataProviderLocalSpiMacroV1:getData(_, tCfg)
   local tData
   local strMessage

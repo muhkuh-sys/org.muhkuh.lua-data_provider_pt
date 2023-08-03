@@ -7,6 +7,11 @@ function DataProviderLocalSecmemV1:_init(tLog)
 end
 
 
+function DataProviderLocalSecmemV1:isCacheable()
+  return true
+end
+
+
 function DataProviderLocalSecmemV1:getData(_, tCfg)
   local tData
   local strMessage
