@@ -75,6 +75,7 @@ function DataProviderPt:__getPlugins()
   local atPlugins = self.atPlugins
   if atPlugins==nil then
     atPlugins = {}
+    local uiDetectedPlugins = 0
 
     local dir = require 'pl.dir'
     local path = require 'pl.path'
@@ -123,6 +124,7 @@ function DataProviderPt:__getPlugins()
               else
                 tLog.debug('Registered plugin "%s".', strPluginID)
                 atPlugins[strPluginID] = tAttr
+                uiDetectedPlugins = uiDetectedPlugins + 1
               end
             end
           end
@@ -131,7 +133,7 @@ function DataProviderPt:__getPlugins()
     end
 
     self.atPlugins = atPlugins
-    tLog.debug('Found %d plugins.', #atPlugins)
+    tLog.debug('Found %d plugins.', uiDetectedPlugins)
   end
 
   return atPlugins
