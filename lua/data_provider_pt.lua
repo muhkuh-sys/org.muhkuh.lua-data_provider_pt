@@ -290,17 +290,21 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
       tMergedConfig,
       tItemAttr.cfg
     )
-    self:deepUpdate(
-      tMergedConfig,
-      tLocalConfig,
-      function(strPath, tOldValue, tNewValue)
-        if tOldValue==nil then
-          tLog.debug('Creating new entry %s = %s', strPath, tostring(tNewValue))
-        else
-          tLog.debug('Updating entry %s from %s to %s', strPath, tostring(tOldValue), tostring(tNewValue))
+    if tLocalConfig~=nil then
+      tLog.debug('Merging local configuration.')
+      self:deepUpdate(
+        tMergedConfig,
+        tLocalConfig,
+        function(strPath, tOldValue, tNewValue)
+          if tOldValue==nil then
+            tLog.debug('Creating new entry %s = %s', strPath, tostring(tNewValue))
+          else
+            tLog.debug('Updating entry %s from %s to %s', strPath, tostring(tOldValue), tostring(tNewValue))
+          end
         end
-      end
-    )
+      )
+      tLog.debug('Merging finished.')
+    end
 
     local tPlugin = tPluginAttr.plugin
     local fItemIsCacheable = tPlugin:isCacheable(strItemName, tMergedConfig)
