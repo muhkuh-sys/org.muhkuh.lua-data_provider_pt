@@ -6,31 +6,21 @@
 -- DEBUGGING:
 -- require("LuaPanda").start()
 
--- Provide Penlight.
-local pl = require'pl.import_into'()
-
 
 -----------------------------------------------------------------------------
 --
 -- Setup the Muhkuh build system.
 --
+local atEnv = require 'mbs'
 
-
-local atEnv = {}
-atEnv.DEFAULT = require "mbs"()
 
 ----------------------------------------------------------------------------------------------------------------------
 --
 -- Create all environments.
 --
 
--- FIXME: Move this to setup.json file
-atEnv.DEFAULT.atVars.PROJECT_VERSION =
-{
-  [1] = "1",
-  [2] = "0",
-  [3] = "0",
-}
+-- FIXME: The MBS2 system should read this from a setup file.
+atEnv.DEFAULT.atVars.PROJECT_VERSION = { "1", "1", "0" }
 
 ------------------------------------------------------------------------------
 --
