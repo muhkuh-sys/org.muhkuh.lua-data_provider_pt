@@ -4,5 +4,5 @@
 	<groupId>org.muhkuh.lua</groupId>
 	<artifactId>data_provider_pt</artifactId>
 	<version>${PROJECT_VERSION}</version>
-	<packaging>zip</packaging>
+	<packaging>tar.xz</packaging>
 </project>

@@ -27,86 +27,150 @@ atEnv.DEFAULT.atVars.PROJECT_VERSION = { "1", "1", "0" }
 -- Build the artifacts of crypto_base, test_crypto_personalisation,
 --
 
-
--- FIXME: Move this to setup.json file
-local atArtifact =
+-- FIXME: The MBS2 system should read the group and module from a setup file.
+-- FIXME: An environment should have something like "PROJECT_VERSION_PRETTY"
+--        with a string representation of the project version.
+local atArtifacts =
 {
+  strRepositoryPath = 'targets/jonchki/repository',
+
   {
     strGroup = 'org.muhkuh.lua',
     strModule = 'data_provider_pt',
+    strArtifact = 'data_provider_pt',
     strProject_version = table.concat(atEnv.DEFAULT.atVars.PROJECT_VERSION,'.'),
-    strPathInstaller = 'installer/org.muhkuh.lua-data_provider_pt',
-    tArchiveStructure = {
-      ['lua'] = {
-        'lua/data_provider_pt.lua'
+    archive = {
+      structure = {
+        ['lua'] = {
+          'lua/data_provider_pt.lua'
+        },
+        ['lua/data_provider_pt'] = {
+          'lua/data_provider_pt/download_base.lua',
+          'lua/data_provider_pt/plugin_base.lua',
+          'lua/data_provider_pt/sdram_parameter_file.lua'
+        },
+        ['lua/data_provider_pt/plugins'] = {
+          'lua/data_provider_pt/plugins/download_firmware_image_v1.lua',
+          'lua/data_provider_pt/plugins/download_sdram_parameter_v1.lua',
+          'lua/data_provider_pt/plugins/download_secmem_definition_v1.lua',
+          'lua/data_provider_pt/plugins/download_spi_macro_v1.lua',
+          'lua/data_provider_pt/plugins/local_firmware_image_v1.lua',
+          'lua/data_provider_pt/plugins/local_sdram_parameter_v1.lua',
+          'lua/data_provider_pt/plugins/local_secmem_definition_v1.lua',
+          'lua/data_provider_pt/plugins/local_spi_macro_v1.lua'
+        },
+        'installer/org.muhkuh.lua-data_provider_pt/install.lua'
       },
-      ['lua/data_provider_pt'] = {
-        'lua/data_provider_pt/download_base.lua',
-        'lua/data_provider_pt/plugin_base.lua',
-        'lua/data_provider_pt/sdram_parameter_file.lua'
-      },
-      ['lua/data_provider_pt/plugins'] = {
-        'lua/data_provider_pt/plugins/download_firmware_image_v1.lua',
-        'lua/data_provider_pt/plugins/download_sdram_parameter_v1.lua',
-        'lua/data_provider_pt/plugins/download_secmem_definition_v1.lua',
-        'lua/data_provider_pt/plugins/download_spi_macro_v1.lua',
-        'lua/data_provider_pt/plugins/local_firmware_image_v1.lua',
-        'lua/data_provider_pt/plugins/local_sdram_parameter_v1.lua',
-        'lua/data_provider_pt/plugins/local_secmem_definition_v1.lua',
-        'lua/data_provider_pt/plugins/local_spi_macro_v1.lua'
-      },
-      'installer/org.muhkuh.lua-data_provider_pt/install.lua'
-    }
+      extensions = {'tar', 'xz'},
+      format = 'tar',
+      filter = {'xz'}
+    },
+    templates = {
+      artifact_configuration = 'installer/org.muhkuh.lua-data_provider_pt/data_provider_pt.xml',
+      pom = 'installer/org.muhkuh.lua-data_provider_pt/pom.xml'
+    },
+    tHash_ID = {'md5','sha1','sha224','sha256','sha384','sha512'}
   }
 }
 
--- config archive:
-local tExtensions = {'zip'}
-local strFormat = 'zip' -- Format of lua-archive object
-local tFilter = {}  -- filter of lua-archive object
 
--- config hash:
-local tHash_ID = {'md5','sha1','sha224','sha256','sha384','sha512'}
+-----------------------------------------------------------------------------
+-- FIXME: Create a builder from the code below.
+
+-- FIXME: Changing the POM template does not trigger a rebuild of the output file.
+-- FIXME: Changing the XML template does not trigger a rebuild of the output file.
+-- FIXME: The POM file does not need a template file. It can be generated completely in the builder.
+
 local strHash_template = '${ID_UC}:${HASH}\n' -- the builder hash use given Replacements!
+local strRepositoryPath = atArtifacts.strRepositoryPath
 
-for _,tArtifact in pairs(atArtifact) do
+local atGeneratedFiles = {}
 
-  -- Split the group by dots.
-  local tGroup = pl.stringx.split(tArtifact.strGroup,'.')
+local path = require 'pl.path'
+local stringx = require 'pl.stringx'
+for _, tArtifactCfg in ipairs(atArtifacts) do
+  -- Get the artifact ID and version.
+  local strArtifact = tArtifactCfg.strArtifact
+  local strProjectVersion = tArtifactCfg.strProject_version
+  -- Get the list of hash IDs to generate.
+  local tHashIDs = tArtifactCfg.tHash_ID
 
-  -- Build the path for all artifacts.
-  local strModulePath = string.format('targets/jonchki/repository/%s/%s/%s',table.concat(tGroup,'/'), tArtifact.strModule, tArtifact.strProject_version)
+  -- Get the group as a path.
+  local strGroupPath = path.join(
+    table.unpack(
+      stringx.split(tArtifactCfg.strGroup,'.')
+    )
+  )
+  -- Build the output path for all files.
+  local strArtifactPath = path.join(
+    strRepositoryPath,
+    strGroupPath,
+    tArtifactCfg.strModule,
+    tArtifactCfg.strProject_version
+  )
+
+  -- Get a shortcut to the archive settings.
+  local tArchiveCfg = tArtifactCfg.archive
 
   -- Build the archive
-  local tArtifact0 = atEnv.DEFAULT:Archive(
-    pl.path.join(strModulePath,string.format('%s-%s',tArtifact.strModule,tArtifact.strProject_version) .. '.' .. table.concat(tExtensions,'.')),
-    strFormat,
-    tFilter,
-    tArtifact.tArchiveStructure
+  local strArchiveOutputPath = path.join(
+    strArtifactPath,
+    string.format(
+      '%s-%s',
+      strArtifact,
+      strProjectVersion
+    ) .. '.' .. table.concat(tArchiveCfg.extensions,'.')
   )
+  local tArtifact = atEnv.DEFAULT:Archive(
+    strArchiveOutputPath,
+    tArchiveCfg.format,
+    tArchiveCfg.filter,
+    tArchiveCfg.structure
+  )
+  table.insert(atGeneratedFiles, tArtifact)
 
   -- Build hash of archive
-  local tArtifact0Hash = atEnv.DEFAULT:Hash(
-    string.format('%s.hash',tArtifact0),
-    tArtifact0,
-    tHash_ID,
-    strHash_template)
-
-  local tConfiguration0 = atEnv.DEFAULT:VersionTemplate(
-    pl.path.join(strModulePath,string.format('%s-%s.xml',tArtifact.strModule,tArtifact.strProject_version)), -- output path
-    string.format('%s/%s.xml',tArtifact.strPathInstaller,tArtifact.strModule) -- input path
-  )
-
-  local tConfiguration0Hash = atEnv.DEFAULT:Hash(
-    string.format('%s.hash',tConfiguration0),
-    tConfiguration0,
-    tHash_ID,
+  local tArtifactHash = atEnv.DEFAULT:Hash(
+    string.format('%s.hash', tArtifact),
+    tArtifact,
+    tHashIDs,
     strHash_template
   )
+  table.insert(atGeneratedFiles, tArtifactHash)
 
-  local tArtifact0Pom = atEnv.DEFAULT:VersionTemplate(
-    pl.path.join(strModulePath,string.format('%s-%s.pom',tArtifact.strModule,tArtifact.strProject_version)), -- output path
-    string.format('%s/pom.xml',tArtifact.strPathInstaller) -- input path
+  local strConfigurationOutputPath = path.join(
+    strArtifactPath,
+    string.format(
+      '%s-%s.xml',
+      strArtifact,
+      strProjectVersion
+    )
   )
+  local tConfiguration = atEnv.DEFAULT:VersionTemplate(
+    strConfigurationOutputPath,
+    tArtifactCfg.templates.artifact_configuration
+  )
+  table.insert(atGeneratedFiles, tConfiguration)
 
+  local tConfigurationHash = atEnv.DEFAULT:Hash(
+    string.format('%s.hash', tConfiguration),
+    tConfiguration,
+    tHashIDs,
+    strHash_template
+  )
+  table.insert(atGeneratedFiles, tConfigurationHash)
+
+  local strPomOutputPath = path.join(
+    strArtifactPath,
+    string.format(
+      '%s-%s.pom',
+      strArtifact,
+      strProjectVersion
+    )
+  )
+  local tArtifactPom = atEnv.DEFAULT:VersionTemplate(
+    strPomOutputPath,
+    tArtifactCfg.templates.artifact_configuration
+  )
+  table.insert(atGeneratedFiles, tArtifactPom)
 end
