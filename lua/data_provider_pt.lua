@@ -268,6 +268,7 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
   local tLog = self.tLog
   local atCache
   local tData
+  local tMergedConfig
 
 
   local tItemAttr, strError = self:__getItemAttr(strItemName)
@@ -285,7 +286,7 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
     tLog.debug('Using plugin "%s".', tPluginAttr.id)
 
     -- Merge the configuration.
-    local tMergedConfig = {}
+    tMergedConfig = {}
     self:deepUpdate(
       tMergedConfig,
       tItemAttr.cfg
@@ -344,7 +345,7 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
     end
   end
 
-  return tData
+  return tData, tMergedConfig
 end
 
 return DataProviderPt
