@@ -29,39 +29,35 @@ function DataProviderDownloadFirmwareV1:getData(strItemName, tCfg)
   if strHashMessage==nil then
     strMessage = string.format('Failed to download the hash from "%s": %s', strUrlHash, strHashError)
   else
-    -- Extract the hash from the hash message.
-    local strHashSumAscii = string.match(strHashMessage, '[0-9a-fA-F]+')
-    if strHashSumAscii==nil then
+    -- Cleverly extract the hash.
+    local strHashSumBin, tReceivedHashFormat = self:getHashSumFromMessage(strHashMessage)
+    if strHashSumBin==nil then
       strMessage = 'The received data for the hash does not contain a hash.'
     else
-      -- Convert the ASCII hash to binary.
-      local sizHashSumAscii = string.len(strHashSumAscii)
-      local astrHashBin = {}
-      for uiPos=1,sizHashSumAscii,2 do
-        table.insert(
-          astrHashBin,
-          string.char(
-            tonumber(
-              string.sub(strHashSumAscii, uiPos, uiPos+1),
-              16
-            )
-          )
-        )
-      end
-      local strHashSumBin = table.concat(astrHashBin)
-
       -- Generate a temporary filename.
       local strTempFile = self:getTempFile(strItemName)
 
       -- Download the image.
       tLog.debug('Download image from %s to %s.', strUrlImage, strTempFile)
-      local tResult, strImageError = self:curl_get_url_file(strUrlImage, strTempFile)
+      local tResult, strImageError, strImageFilename = self:curl_get_url_file(strUrlImage, strTempFile)
       if tResult==nil then
         strMessage = string.format('Failed to download the image from "%s": %s', strUrlImage, tostring(strImageError))
       else
-        -- Generate the hash.
-        local tHash = self:getSha384ForFile(strTempFile)
-        if tHash~=strHashSumBin then
+        -- Use the file from the URL as a fallback if the download did not provide one.
+        if strImageFilename==nil then
+          local path = require 'pl.path'
+          strImageFilename = path.basename(strUrlImage)
+        end
+
+        -- Generate 2 hashes for the file.
+        -- One hash is always SHA384 as we need this for the event, the other hash is the received format.
+        local mhash = require 'mhash'
+        local tHashSha384, tHashInReceivedFormat = self:getDoubleHashForFile(
+          mhash.MHASH_SHA384,
+          tReceivedHashFormat,
+          strTempFile
+        )
+        if tHashInReceivedFormat~=strHashSumBin then
           strMessage = string.format('Hash for "%s" does not match.', strUrlImage)
         else
           local path = require 'pl.path'
@@ -71,8 +67,8 @@ function DataProviderDownloadFirmwareV1:getData(strItemName, tCfg)
           else
             local ulSize = tFileAttr.size
             tData = {
-              hash = strHashSumAscii,
-              name = path.basename(strUrlImage),
+              hash = self.convertBinaryHashToAscii(tHashSha384),
+              name = strImageFilename,
               path = strTempFile,
               size = ulSize
             }
