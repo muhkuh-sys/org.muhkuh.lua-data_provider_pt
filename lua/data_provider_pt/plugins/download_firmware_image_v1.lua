@@ -12,6 +12,14 @@ function DataProviderDownloadFirmwareV1:isCacheable()
 end
 
 
+---@type { [string]: string }
+DataProviderDownloadFirmwareV1.__atKnownServerHashes = {
+  -- The new nexus3 provides SHA512 sums.
+  ['https://nexus.hilscher.local/'] = '.sha512'
+}
+
+
+
 function DataProviderDownloadFirmwareV1:getData(strItemName, tCfg)
   local tLog = self.tLog
   local tData
@@ -21,6 +29,14 @@ function DataProviderDownloadFirmwareV1:getData(strItemName, tCfg)
   local strUrlHash = strUrlImage .. '.sha384'
   if tCfg.HASH~=nil then
     strUrlHash = tCfg.HASH
+  else
+    for strPrefix, strHashSuffix in pairs(self.__atKnownServerHashes) do
+      local sizPrefix = string.len(strPrefix)
+      if string.sub(strUrlImage, 1, sizPrefix)==strPrefix then
+        strUrlHash = strUrlImage .. strHashSuffix
+        break
+      end
+    end
   end
 
   -- Download the hash.
