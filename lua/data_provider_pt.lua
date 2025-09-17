@@ -264,12 +264,10 @@ function DataProviderPt:deepUpdate(atDestination, atSource, fnOnUpdate, strPath)
 end
 
 
-function DataProviderPt:getData(strItemName, tLocalConfig)
-  local tLog = self.tLog
-  local atCache
-  local tData
-  local tMergedConfig
 
+function DataProviderPt:getCfg(strItemName, tLocalConfig)
+  local tLog = self.tLog
+  local tMergedConfig
 
   local tItemAttr, strError = self:__getItemAttr(strItemName)
   if tItemAttr==nil then
@@ -282,9 +280,6 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
     error(strMsg)
 
   else
-    local tPluginAttr = tItemAttr.plugin_attr
-    tLog.debug('Using plugin "%s".', tPluginAttr.id)
-
     -- Merge the configuration.
     tMergedConfig = {}
     self:deepUpdate(
@@ -306,6 +301,35 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
       )
       tLog.debug('Merging finished.')
     end
+  end
+
+  return tMergedConfig
+end
+
+
+
+function DataProviderPt:getData(strItemName, tLocalConfig)
+  local tLog = self.tLog
+  local atCache
+  local tData
+  local tMergedConfig
+
+
+  local tItemAttr, strError = self:__getItemAttr(strItemName)
+  if tItemAttr==nil then
+    local strMsg = string.format(
+      'Failed to get the attributes for item %s: %s',
+      strItemName,
+      strError
+    )
+    tLog.error(strMsg)
+    error(strMsg)
+
+  else
+    local tPluginAttr = tItemAttr.plugin_attr
+    tLog.debug('Using plugin "%s".', tPluginAttr.id)
+
+    tMergedConfig = self:getCfg(strItemName, tLocalConfig)
 
     local tPlugin = tPluginAttr.plugin
     local fItemIsCacheable = tPlugin:isCacheable(strItemName, tMergedConfig)
@@ -347,5 +371,6 @@ function DataProviderPt:getData(strItemName, tLocalConfig)
 
   return tData, tMergedConfig
 end
+
 
 return DataProviderPt
